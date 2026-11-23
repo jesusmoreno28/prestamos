@@ -1,4 +1,8 @@
 from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
+
+DIAS_MAXIMOS_ESTUDIANTE = 7
+LIMITE_EQUIPOS_ESTUDIANTE = 2
 
 
 class PrestamoPrestamo(models.Model):
@@ -84,4 +88,74 @@ class PrestamoPrestamo(models.Model):
                 ).days
                 prestamo.dias_prestamo = dias
             else:
-                prestamo.dias_prestamo = 0 
+                prestamo.dias_prestamo = 0
+
+    @api.constrains("fecha_prestamo", "fecha_devolucion", "tipo_solicitante")
+    def _check_fechas(self):
+        for prestamo in self:
+            if prestamo.fecha_devolucion < prestamo.fecha_prestamo:
+                raise ValidationError(
+                    "La fecha de devolución no puede ser anterior "
+                    "a la fecha de préstamo."
+                )
+
+            if (
+                prestamo.tipo_solicitante == "estudiante"
+                and prestamo.dias_prestamo > DIAS_MAXIMOS_ESTUDIANTE
+            ):
+                raise ValidationError(
+                    f"Un estudiante no puede solicitar equipos por más de "
+                    f"{DIAS_MAXIMOS_ESTUDIANTE} días."
+                )
+
+    @api.constrains("linea_ids")
+    def _check_equipos_repetidos(self):
+        for prestamo in self:
+            if len(prestamo.linea_ids) != len(prestamo.linea_ids.equipo_id):
+                raise ValidationError(
+                    "No se puede agregar el mismo equipo más de una vez "
+                    "en el préstamo."
+                )
+
+    def action_prestar(self):
+        for prestamo in self:
+            if prestamo.state != "borrador":
+                raise UserError(
+                    "Solo se puede prestar un préstamo en borrador."
+                )
+
+            if not prestamo.linea_ids:
+                raise UserError(
+                    "Debe agregar al menos un equipo antes de prestar."
+                )
+
+            if (
+                prestamo.tipo_solicitante == "estudiante"
+                and len(prestamo.linea_ids) > LIMITE_EQUIPOS_ESTUDIANTE
+            ):
+                raise UserError(
+                    f"Un estudiante solo puede solicitar "
+                    f"{LIMITE_EQUIPOS_ESTUDIANTE} equipos."
+                )
+
+            for linea in prestamo.linea_ids:
+                if linea.equipo_id.estado != "disponible":
+                    raise UserError(
+                        f"El equipo '{linea.equipo_id.name}' "
+                        f"no está disponible."
+                    )
+
+            prestamo.linea_ids.equipo_id.write({"estado": "prestado"})
+            prestamo.state = "prestado"
+            prestamo.message_post(
+                body=f"Se prestaron {prestamo.cantidad_equipos} equipo(s) "
+                f"a {prestamo.partner_id.name}."
+            )
+
+    def action_devolver(self):
+        for prestamo in self:
+            if prestamo.state not in ("prestado", "atrasado"):
+                raise UserError("Solo se puede devolver un préstamo activo.")
+            prestamo.linea_ids.equipo_id.write({"estado": "disponible"})
+            prestamo.state = "devuelto"
+            prestamo.message_post(body="Los equipos fueron devueltos.")

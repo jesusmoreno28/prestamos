@@ -19,3 +19,15 @@
 
 # ¿Qué pasa con las líneas cuando se borra un préstamo? ¿Qué parte del código lo define?
 # r/ primero borrara todo relacionado a eso como sus detales en prestamo.linea evitan que los registros queden sin algun id o datos cuyo caso en vez de solo flotar seran borrados automaticamente sin prestamo no hay detalle
+
+# Los botones ya se ocultan según el estado. ¿Por qué los métodos vuelven a validar el estado?
+# r/ Es como volver a validar el estado dentro de un metodo podemos garantizar funcion logrando que un usuario lo tome un exito silencioso que un mensaje diciendo listo y enviado 
+
+# ¿Qué hace prestamo.linea_ids.equipo_id.write(...) y por qué no necesita un for?
+# r/ el cambio se puede aplicar automaticamente si y a los equipos seleccionados, con eso se vita un error de recorrer registro por registro de por si tedioso y tardio, logranod asi un ahorro de tiempo y no ver la pantalla llena de registro por registro
+
+# El campo equipo_id ya filtra los equipos disponibles. ¿Por qué hace falta el TODO 5?
+# r/ el momento en que se selecciona el equipo y el momento en que se pulsa prestar, otro usuario podría haber prestado ese mismo equipo y cambiar su estado y todo eso va en el  5 logrando asi volver a verificar el estador del servidor antes de confirmar el prestamo 
+
+# ¿En qué momento se ejecuta un método con @api.constrains? ¿Y la validación de action_prestar?
+# r/ vañidar por si  falla sino lanzando una excepción y el registro no se guarda en la base de datos en cambio las validaciones de action_prestar solo se ejecutan cuando el usuario pulsa el botón de prestar ya que forman parte de una acción específica sin cambio
