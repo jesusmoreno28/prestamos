@@ -31,3 +31,9 @@
 
 # ¿En qué momento se ejecuta un método con @api.constrains? ¿Y la validación de action_prestar?
 # r/ vañidar por si  falla sino lanzando una excepción y el registro no se guarda en la base de datos en cambio las validaciones de action_prestar solo se ejecutan cuando el usuario pulsa el botón de prestar ya que forman parte de una acción específica sin cambio
+
+# ¿Qué pasa si arrastra una tarjeta del kanban a otra columna? ¿Por qué?
+# r/ cada columna representa un valor de estado si un equipo que nosotros agregguemos se mueve de disponible a prestado Odoo actualiza el campo estado del a prestado esto ocurre porque las columnas del kanban están vinculadas directamente a los valores de ese campo que se les asigno
+
+# El campo prestamo_ids se agregó a res.partner. ¿Se crea una columna nueva en la tabla de contactos? Explique.
+# r/  es un campo virtual que se basa en la relación ya existente mediante el campo partner_id del modelo prestamo la columna lo almacena la relacion de partner_id modelo prestamo y prestamo_ids en odoo muestra todos los prestamos realicionados con un contacto automaticos
